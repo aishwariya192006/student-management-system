@@ -2,23 +2,17 @@ version: 0.2
 
 phases:
   install:
-    runtime-versions:
-      nodejs: 18
     commands:
-      - echo Installing dependencies...
-      - npm install
-  pre_build:
-    commands:
-      - echo Starting pre_build phase...
+      - echo No install needed
   build:
     commands:
-      - echo Build started on `date`
-      - # You can add tests here: npm test
-  post_build:
-    commands:
-      - echo Build completed on `date`
+      - echo Build complete!
 
 artifacts:
   files:
-    - '**/*'
-  name: student-management-system-$(date +%Y-%m-%d)
+    - index.html
+    - style.css
+    - index.js
+    - appspec.yml
+    - scripts/**
+  discard-paths: no
