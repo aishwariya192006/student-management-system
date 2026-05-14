@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student MS | AWS DevOps Lab</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="logo">EduCloud Admin</div>
+        <div class="nav-links">
+            <button onclick="showView('home')" id="nav-home" class="active">Home</button>
+            <button onclick="showView('add')" id="nav-add">Add Student</button>
+            <button onclick="showView('list')" id="nav-list">Student List</button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Home Page View -->
+        <section id="home" class="view active">
+            <div class="hero">
+                <h1>Modern Student Management</h1>
+                <p>Welcome to the AWS DevOps Lab Experiment. This application is designed to demonstrate EC2 hosting and CI/CD pipelines.</p>
+                <div class="cta-buttons">
+                    <button class="primary" onclick="showView('add')">Get Started</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Add Student Form View -->
+        <section id="add" class="view">
+            <div class="card">
+                <h2>Add New Student</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Enter student details to register them in the system.</p>
+                
+                <form id="studentForm">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" placeholder="e.g. Alex Johnson" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="roll">Roll Number</label>
+                        <input type="text" id="roll" placeholder="e.g. CS2024-001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dept">Department</label>
+                        <select id="dept" required>
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Mechanical">Mechanical</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="primary">Register Student</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Student List View -->
+        <section id="list" class="view">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Registered Students</h2>
+                    <button onclick="fetchStudents()" class="nav-links" style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 5px 10px; cursor: pointer; color: var(--text-main); border: 1px solid rgba(255,255,255,0.1);">Refresh</button>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTableBody">
+                            <!-- Data will be loaded here via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Simple View Switcher Logic
+        function showView(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            // Remove active class from all buttons
+            document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+            
+            // Show requested view
+            document.getElementById(viewId).classList.add('active');
+            // Highlight current button
+            document.getElementById('nav-' + viewId).classList.add('active');
+
+            if (viewId === 'list') {
+                fetchStudents();
+            }
+        }
+
+        // --- API INTEGRATION ---
+
+        // 1. Fetch Students from Backend
+        async function fetchStudents() {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Loading...</td></tr>';
+
+            try {
+                const response = await fetch('/api/students');
+                const data = await response.json();
+                
+                tbody.innerHTML = '';
+                data.forEach(student => {
+                    const row = `
+                        <tr>
+                            <td>${student.roll}</td>
+                            <td>${student.name}</td>
+                            <td>${student.dept}</td>
+                            <td><span class="status-badge">Active</span></td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--error);">Error loading data</td></tr>';
+            }
+        }
+
+        // 2. Add New Student
+        document.getElementById('studentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const roll = document.getElementById('roll').value;
+            const dept = document.getElementById('dept').value;
+
+            try {
+                const response = await fetch('/api/students', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, roll, dept })
+                });
+
+                if (response.ok) {
+                    alert('Student registered successfully!');
+                    document.getElementById('studentForm').reset();
+                    showView('list');
+                } else {
+                    alert('Failed to register student.');
+                }
+            } catch (err) {
+                alert('Network error. Is the server running?');
+            }
+        });
+    </script>
+</body>
+</html>

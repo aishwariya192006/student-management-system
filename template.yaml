@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Student Management Infrastructure
+
+Resources:
+
+  StudentSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  StudentEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+
+      ImageId: "{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}"
+
+      SecurityGroups:
+        - !Ref StudentSG
+
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          dnf update -y
+          dnf install -y httpd
+          systemctl start httpd
+          systemctl enable httpd
+          echo "<h1>Student Management System Deployed</h1>" > /var/www/html/index.html
+
+      Tags:
+        - Key: Name
+          Value: StudentManagementServer
